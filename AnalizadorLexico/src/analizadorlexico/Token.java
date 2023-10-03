@@ -12,7 +12,7 @@ public class Token {
         STRING,
         PUNTO, COMA, MAS, MENOS, MULTIPLICACION, DIVISION, PUNTO_COMA,
         BANG, DESIGUAL, IGUAL, DOBLE_IGUAL, MAYOR_QUE, MAYOR_IGUAL_QUE, MENOR_QUE, MENOR_IGUAL_QUE,
-        AND, OR, IF, ELSE, FOR, NULL, PRINT, RETURN, TRUE, VAR, WHILE, FALSE, FUN,
+        AND, OR, IF, ELSE, FOR, NULL, PRINT, RETURN, TRUE, VAR, WHILE, FALSE, FUN, OPERADOR,
         EOF
     }
 
@@ -105,54 +105,133 @@ public class Token {
                     }
                     break;
 
-                case 12:
+                case 13: // OPERADOR
+                    if (c == '+') {
+                        tokens.add(new TokenInfo(TipoToken.MAS, lexema));
+                        lexema = "";
+                        estado = 0;
+                    } else if (c == '-') {
+                        tokens.add(new TokenInfo(TipoToken.MENOS, lexema));
+                        lexema = "";
+                        estado = 0;
+                    } else if (c == '*') {
+                        tokens.add(new TokenInfo(TipoToken.MULTIPLICACION, lexema));
+                        lexema = "";
+                        estado = 0;
+                    } else if (c == '/') {
+                        tokens.add(new TokenInfo(TipoToken.DIVISION, lexema));
+                        lexema = "";
+                        estado = 0;
+                    } else if (c == '&') {
+                        if (i == codigoFuente.length() - 1) {
+                            throw new Exception("Operador binario no válido: " + lexema);
+                        }
+                        if (codigoFuente.charAt(i + 1) == '&') {
+                            tokens.add(new TokenInfo(TipoToken.AND, lexema));
+                            lexema = "";
+                            estado = 0;
+                            i++;
+                        } else {
+                            tokens.add(new TokenInfo(TipoToken.OPERADOR, lexema));
+                            lexema = "";
+                            estado = 0;
+                        }
+                    } else if (c == '|') {
+                        if (i == codigoFuente.length() - 1) {
+                            throw new Exception("Operador binario no válido: " + lexema);
+                        }
+                        if (codigoFuente.charAt(i + 1) == '|') {
+                            tokens.add(new TokenInfo(TipoToken.OR, lexema));
+                            lexema = "";
+                            estado = 0;
+                            i++;
+                        } else {
+                            tokens.add(new TokenInfo(TipoToken.OPERADOR, lexema));
+                            lexema = "";
+                            estado = 0;
+                        }
+                    } else if (c == '<') {
+                        if (i == codigoFuente.length() - 1) {
+                            throw new Exception("Operador binario no válido: " + lexema);
+                        }
+                        if (codigoFuente.charAt(i + 1) == '=') {
+                            tokens.add(new TokenInfo(TipoToken.MENOR_IGUAL_QUE, lexema));
+                            lexema = "";
+                            estado = 0;
+                            i++;
+                        } else {
+                            tokens.add(new TokenInfo(TipoToken.MENOR_QUE, lexema));
+                            lexema = "";
+                            estado = 0;
+                        }
+                    } else if (c == '>') {
+                        if (i == codigoFuente.length() - 1) {
+                            throw new Exception("Operador binario no válido: " + lexema);
+                        }
+                        if (codigoFuente.charAt(i + 1) == '=') {
+                            tokens.add(new TokenInfo(TipoToken.MAYOR_IGUAL_QUE, lexema));
+                            lexema = "";
+                            estado = 0;
+                            i++;
+                        } else {
+                            tokens.add(new TokenInfo(TipoToken.MAYOR_QUE, lexema));
+                            lexema = "";
+                            estado = 0;
+                        }
+                    }
+                    break;
+
+                case 12: // PUNTO
                     if (Character.isDigit(c)) {
                         estado = 14;
                         lexema += c;
                     } else {
-                        throw new Exception("Número mal formado: " + lexema);
+                        tokens.add(new TokenInfo(TipoToken.PUNTO, lexema));
+                        lexema = "";
+                        estado = 0;
+                        i--;
                     }
                     break;
 
-                case 14:
+                case 14: // NÚMERO DECIMAL
                     if (Character.isDigit(c)) {
                         estado = 14;
                         lexema += c;
                     } else if (c == 'E') {
-                        estado = 13;
-                        lexema += c;
-                    } else {
-                        tokens.add(new TokenInfo(TipoToken.NUMERO, lexema, parseLiteral(lexema)));
-                        lexema = "";
-                        estado = 0;
-                        i--;
-                    }
-                    break;
-
-                case 13:
-                    if (c == '+' || c == '-') {
                         estado = 15;
                         lexema += c;
+                    } else {
+                        tokens.add(new TokenInfo(TipoToken.NUMERO, lexema, parseLiteral(lexema)));
+                        lexema = "";
+                        estado = 0;
+                        i--;
+                    }
+                    break;
+
+                case 15: // EXPONENTE
+                    if (c == '+' || c == '-') {
+                        estado = 16;
+                        lexema += c;
                     } else if (Character.isDigit(c)) {
-                        estado = 16;
+                        estado = 17;
                         lexema += c;
                     } else {
-                        throw new Exception("Exponente mal formado: " + lexema);
+                        throw new Exception("Exponente no válido: " + lexema);
                     }
                     break;
 
-                case 15:
+                case 16: // SIGNO DE EXPONENTE
                     if (Character.isDigit(c)) {
-                        estado = 16;
+                        estado = 17;
                         lexema += c;
                     } else {
-                        throw new Exception("Exponente mal formado: " + lexema);
+                        throw new Exception("Exponente no válido: " + lexema);
                     }
                     break;
 
-                case 16:
+                case 17: // DIGITOS DE EXPONENTE
                     if (Character.isDigit(c)) {
-                        estado = 16;
+                        estado = 17;
                         lexema += c;
                     } else {
                         tokens.add(new TokenInfo(TipoToken.NUMERO, lexema, parseLiteral(lexema)));
@@ -162,219 +241,24 @@ public class Token {
                     }
                     break;
 
-                case 17: // PUNTO
-                    tokens.add(new TokenInfo(TipoToken.PUNTO, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--; // Retroceder un caracter para continuar escaneando
-                    break;
-
-                case 18: // COMA
-                    tokens.add(new TokenInfo(TipoToken.COMA, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--; // Retroceder un caracter para continuar escaneando
-                    break;
-
-                case 19: // MAS
-                    tokens.add(new TokenInfo(TipoToken.MAS, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 20: // MENOS
-                    tokens.add(new TokenInfo(TipoToken.MENOS, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 21: // MULTIPLICACION
-                    tokens.add(new TokenInfo(TipoToken.MULTIPLICACION, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 22: // DIVISION
-                    tokens.add(new TokenInfo(TipoToken.DIVISION, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 23: // PUNTO_COMA
-                    tokens.add(new TokenInfo(TipoToken.PUNTO_COMA, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 24: // BANG
-                    tokens.add(new TokenInfo(TipoToken.BANG, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 25: // DESIGUAL
-                    tokens.add(new TokenInfo(TipoToken.DESIGUAL, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 26: // IGUAL
-                    tokens.add(new TokenInfo(TipoToken.IGUAL, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 27: // DOBLE_IGUAL
-                    tokens.add(new TokenInfo(TipoToken.DOBLE_IGUAL, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 28: // MAYOR_QUE
-                    tokens.add(new TokenInfo(TipoToken.MAYOR_QUE, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 29: // MAYOR_IGUAL_QUE
-                    tokens.add(new TokenInfo(TipoToken.MAYOR_IGUAL_QUE, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 30: // MENOR_QUE
-                    tokens.add(new TokenInfo(TipoToken.MENOR_QUE, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 31: // MENOR_IGUAL_QUE
-                    tokens.add(new TokenInfo(TipoToken.MENOR_IGUAL_QUE, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 32: // AND
-                    tokens.add(new TokenInfo(TipoToken.AND, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 33: // OR
-                    tokens.add(new TokenInfo(TipoToken.OR, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 34: // IF
-                    tokens.add(new TokenInfo(TipoToken.IF, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 35: // ELSE
-                    tokens.add(new TokenInfo(TipoToken.ELSE, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 36: // FOR
-                    tokens.add(new TokenInfo(TipoToken.FOR, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 37: // NULL
-                    tokens.add(new TokenInfo(TipoToken.NULL, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 38: // PRINT
-                    tokens.add(new TokenInfo(TipoToken.PRINT, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 39: // RETURN
-                    tokens.add(new TokenInfo(TipoToken.RETURN, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 40: // TRUE
-                    tokens.add(new TokenInfo(TipoToken.TRUE, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 41: // VAR
-                    tokens.add(new TokenInfo(TipoToken.VAR, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 42: // WHILE
-                    tokens.add(new TokenInfo(TipoToken.WHILE, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 43: // FALSE
-                    tokens.add(new TokenInfo(TipoToken.FALSE, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 44: // FUN
-                    tokens.add(new TokenInfo(TipoToken.FUN, lexema));
-                    lexema = "";
-                    estado = 0;
-                    i--;
-                    break;
-
-                case 45: // STRING
-                    if (c == '"') {
-                        estado = 0;
-                        lexema += c;
-                        tokens.add(new TokenInfo(TipoToken.STRING, lexema));
+                case 45: // COMA
+                    if (c == ',') {
+                        tokens.add(new TokenInfo(TipoToken.COMA, lexema));
                         lexema = "";
-                    } else if (c == '\\') {
-                        estado = 46;
-                        lexema += c;
+                        estado = 0;
+                        i++;
                     } else {
-                        lexema += c;
+                        throw new Exception("Caracter no válido: " + c);
                     }
                     break;
 
-                case 46: // Carácter de escape (STRING)
-                    lexema += c;
-                    estado = 45;
+                case 46: // COMENTARIO
+                    if (c == '\n') {
+                        estado = 0;
+                        lexema = "";
+                    } else {
+                        lexema += c;
+                    }
                     break;
 
                 default:
