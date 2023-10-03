@@ -56,15 +56,18 @@ public class Token {
                         // Ignorar espacios en blanco, saltos de línea y tabulaciones
                     } else {
                         lexema += c;
-                        for (TipoToken tipo : TipoToken.values()) {
-                            String tipoStr = tipo.toString();
-                            if (tipoStr.length() <= lexema.length() && tipoStr.equals(lexema.substring(0, tipoStr.length()))) {
-                                System.out.println("Tipo de Token detectado: " + tipo);
-                                tokens.add(new TokenInfo(tipo, lexema));
-                                lexema = "";
-                                i--;
-                                estado = 0;
-                                break;
+                        if (palabrasReservadas.containsKey(lexema)) {
+                            TipoToken tt = palabrasReservadas.get(lexema);
+                            tokens.add(new TokenInfo(tt, lexema));
+                            lexema = "";
+                        } else {
+                            for (TipoToken tipo : TipoToken.values()) {
+                                if (tipo.toString().equals(lexema)) {
+                                    tokens.add(new TokenInfo(tipo, lexema));
+                                    lexema = "";
+                                    estado = 0;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -163,14 +166,14 @@ public class Token {
                     tokens.add(new TokenInfo(TipoToken.PUNTO, lexema));
                     lexema = "";
                     estado = 0;
-                    i--;
+                    i--; // Retroceder un caracter para continuar escaneando
                     break;
 
                 case 18: // COMA
                     tokens.add(new TokenInfo(TipoToken.COMA, lexema));
                     lexema = "";
                     estado = 0;
-                    i--;
+                    i--; // Retroceder un caracter para continuar escaneando
                     break;
 
                 case 19: // MAS
@@ -357,38 +360,28 @@ public class Token {
 
                 case 45: // STRING
                     if (c == '"') {
-                        lexema += c;
-                        estado = 46;
-                    } else {
-                        throw new Exception("Cadena mal formada: " + lexema);
-                    }
-                    break;
-
-                case 46:
-                    if (c == '\\') {
-                        estado = 47;
-                        lexema += c;
-                    } else if (c == '"') {
+                        estado = 0;
                         lexema += c;
                         tokens.add(new TokenInfo(TipoToken.STRING, lexema));
                         lexema = "";
-                        estado = 0;
-                    } else if (c == '\n') {
-                        throw new Exception("Cadena no puede abarcar múltiples líneas: " + lexema);
+                    } else if (c == '\\') {
+                        estado = 46;
+                        lexema += c;
                     } else {
                         lexema += c;
                     }
                     break;
 
-                case 47:
+                case 46: // Carácter de escape (STRING)
                     lexema += c;
-                    estado = 46;
+                    estado = 45;
                     break;
 
                 default:
                     throw new Exception("Estado no válido: " + estado);
             }
         }
+
         return tokens;
     }
 
