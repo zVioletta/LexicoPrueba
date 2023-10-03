@@ -53,19 +53,18 @@ public class Token {
                         estado = 11;
                         lexema += c;
                     } else if (c == ' ' || c == '\n' || c == '\t') {
+                        // Ignorar espacios en blanco, saltos de línea y tabulaciones
                     } else {
                         lexema += c;
-                        if (palabrasReservadas.containsKey(lexema)) {
-                            TipoToken tt = palabrasReservadas.get(lexema);
-                            tokens.add(new TokenInfo(tt, lexema));
-                            lexema = "";
-                        } else {
-                            for (TipoToken tipo : TipoToken.values()) {
-                                if (tipo.toString().equals(lexema)) {
-                                    tokens.add(new TokenInfo(tipo, lexema));
-                                    lexema = "";
-                                    break;
-                                }
+                        for (TipoToken tipo : TipoToken.values()) {
+                            String tipoStr = tipo.toString();
+                            if (tipoStr.length() <= lexema.length() && tipoStr.equals(lexema.substring(0, tipoStr.length()))) {
+                                System.out.println("Tipo de Token detectado: " + tipo);
+                                tokens.add(new TokenInfo(tipo, lexema));
+                                lexema = "";
+                                i--;
+                                estado = 0;
+                                break;
                             }
                         }
                     }
