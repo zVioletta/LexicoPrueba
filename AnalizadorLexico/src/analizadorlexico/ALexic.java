@@ -49,8 +49,8 @@ public class ALexic {
 
     private static void ejecutar(String source) {
         try {
-            Token tokenGenerator = new Token();
-            List<Token.TokenInfo> tokens = tokenGenerator.escanear(source);
+            Token tokenGenerator = new Token(source);
+            List<Token.TokenInfo> tokens = tokenGenerator.escanear();
 
             for (Token.TokenInfo tokenInfo : tokens) {
                 TipoToken tipo = tokenInfo.getTipo();

@@ -17,11 +17,12 @@ public class Token {
     }
 
     private final List<TokenInfo> tokens = new ArrayList<>();
-    private Map<String, TipoToken> palabrasReservadas = new HashMap<>();
+    private final Map<String, TipoToken> palabrasReservadas = new HashMap<>();
 
-    public Token() {
+    private final String codigoFuente;
+
+    public Token(String codigoFuente) {
         // Inicializar palabras reservadas
-        palabrasReservadas = new HashMap<>();
         palabrasReservadas.put("and", TipoToken.AND);
         palabrasReservadas.put("or", TipoToken.OR);
         palabrasReservadas.put("if", TipoToken.IF);
@@ -35,9 +36,11 @@ public class Token {
         palabrasReservadas.put("while", TipoToken.WHILE);
         palabrasReservadas.put("false", TipoToken.FALSE);
         palabrasReservadas.put("fun", TipoToken.FUN);
+
+        this.codigoFuente = codigoFuente + " ";
     }
 
-    public List<TokenInfo> escanear(String codigoFuente) throws Exception {
+    public List<TokenInfo> escanear() throws Exception {
         String lexema = "";
         int estado = 0;
 
@@ -53,9 +56,17 @@ public class Token {
                         estado = 11;
                         lexema += c;
                     } else if (c == ' ' || c == '\n' || c == '\t') {
-                        // Ignorar espacios en blanco, saltos de línea y tabulaciones
-                    } else {
+                        // Ignorar espacios en blanco, saltos de línea y tabulacione
+                    } else if (c == '(') {
+
+                    }
+                    break;
+
+                case 9:
+                    if (Character.isLetter(c) || Character.isDigit(c)) {
+                        estado = 9;
                         lexema += c;
+                    } else {
                         if (palabrasReservadas.containsKey(lexema)) {
                             TipoToken tt = palabrasReservadas.get(lexema);
                             tokens.add(new TokenInfo(tt, lexema));
@@ -69,18 +80,6 @@ public class Token {
                                     break;
                                 }
                             }
-                        }
-                    }
-                    break;
-
-                case 9:
-                    if (Character.isLetter(c) || Character.isDigit(c)) {
-                        estado = 9;
-                        lexema += c;
-                    } else {
-                        if (!lexema.isEmpty()) {
-                            tokens.add(new TokenInfo(TipoToken.IDENTIFICADOR, lexema));
-                            lexema = "";
                         }
                         i--;
                         estado = 0;
